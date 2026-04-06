@@ -7,7 +7,7 @@ artifacts, and everyday personal/work clutter.
 
 Content is generated in 8 languages (English, Spanish, Chinese, German, Arabic,
 Russian, Japanese, Portuguese) to test the 108-language support of
-jina-embeddings-v5-text-nano.
+multilingual embedding support.
 """
 
 from __future__ import annotations

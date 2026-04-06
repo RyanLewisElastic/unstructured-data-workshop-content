@@ -1,6 +1,6 @@
 """Shared configuration, environment loading, and Elasticsearch client setup.
 
-Uses native Elastic Inference Service for retrieval embeddings (jina-embeddings-v5-text-nano
+Uses .multilingual-e5-small for retrieval embeddings (deployed locally in the cluster
 via semantic_text fields). Format-based entities (emails, financial refs) are regex-extracted
 at index time; person/company identification is delegated to the LLM at query time.
 """
@@ -26,9 +26,12 @@ INDEX_RETRIEVAL = "triage-retrieval"
 INDEX_SAR_REPORTS = "triage-sar-reports"
 INDEX_QUARANTINE = "triage-quarantine"
 
-# --- Elastic Inference Service (native, no API key needed) ---
-ELASTIC_INFERENCE_ENDPOINT_ID = "jina-v5-retrieval"
-ELASTIC_INFERENCE_MODEL = "jina-embeddings-v5-text-nano"
+# --- Embedding model ---
+# Uses the built-in .multilingual-e5-small model deployed locally in the cluster.
+# On Elastic Cloud, you can switch to a cloud-hosted model (e.g. jina-embeddings-v5-text-nano)
+# by changing these constants.
+ELASTIC_INFERENCE_ENDPOINT_ID = "e5-small-retrieval"
+ELASTIC_INFERENCE_MODEL = ".multilingual-e5-small_linux-x86_64"
 
 # --- Regex-extracted entity fields (format-based, no predefined lists) ---
 ENTITY_FIELDS = (
