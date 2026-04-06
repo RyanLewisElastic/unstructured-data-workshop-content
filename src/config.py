@@ -81,11 +81,12 @@ class Config:
         elif self.es_username and self.es_password:
             kwargs["basic_auth"] = (self.es_username, self.es_password)
 
-        if self.es_insecure:
+        if self.es_insecure and self.es_url.startswith("https"):
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
             kwargs["ssl_context"] = ctx
+            kwargs["verify_certs"] = False
 
         return Elasticsearch(**kwargs)
 
