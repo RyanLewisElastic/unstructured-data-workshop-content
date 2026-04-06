@@ -1,0 +1,149 @@
+#!/bin/bash
+#
+# Example Instruqt lifecycle script for challenge 1 — runs on host-1
+#
+# Copy this file to your track as 01-ingest-the-data/setup-host-1 and chmod +x.
+#
+# Instruqt typically sets:
+#   ELASTICSEARCH_URL, ELASTICSEARCH_USER, ELASTICSEARCH_PASSWORD,
+#   ELASTICSEARCH_APIKEY, KIBANA_URL
+#
+
+set -e
+
+echo "=============================================="
+echo "[host-1] Challenge 1 Setup"
+echo "=============================================="
+
+ELASTICSEARCH_URL="${ELASTICSEARCH_URL:-http://kubernetes-vm:30920}"
+ELASTICSEARCH_USER="${ELASTICSEARCH_USER:-elastic}"
+ELASTICSEARCH_PASSWORD="${ELASTICSEARCH_PASSWORD:-}"
+ELASTICSEARCH_APIKEY="${ELASTICSEARCH_APIKEY:-}"
+KIBANA_URL="${KIBANA_URL:-http://kubernetes-vm:30002}"
+
+echo ""
+echo "Checking environment variables..."
+echo "  ELASTICSEARCH_URL:      ${ELASTICSEARCH_URL}"
+echo "  ELASTICSEARCH_USER:     ${ELASTICSEARCH_USER}"
+echo "  ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:+(set)}"
+echo "  ELASTICSEARCH_APIKEY:   ${ELASTICSEARCH_APIKEY:+(set)}"
+echo "  KIBANA_URL:             ${KIBANA_URL}"
+
+echo ""
+echo "[1/7] Installing system dependencies..."
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -qq
+apt-get install -y -qq \
+    python3.11 python3.11-venv python3-pip \
+    poppler-utils tesseract-ocr libmagic1 \
+    git curl jq nodejs
+
+echo ""
+echo "[2/7] Cloning workshop repository..."
+
+REPO_DIR="/root/forensic-triage"
+REPO_URL="https://github.com/RyanLewisElastic/unstructured-data-workshop-content.git"
+
+if [ -d "${REPO_DIR}/.git" ]; then
+    echo "  Repository already exists, pulling latest..."
+    git -C "${REPO_DIR}" pull --ff-only || true
+else
+    rm -rf "${REPO_DIR}"
+    git clone "${REPO_URL}" "${REPO_DIR}"
+fi
+echo "  Repository ready."
+
+echo ""
+echo "[3/7] Setting up Python virtual environment..."
+cd "${REPO_DIR}"
+python3.11 -m venv .venv
+# shellcheck source=/dev/null
+source .venv/bin/activate
+pip install --quiet --upgrade pip
+pip install --quiet -e .
+echo "  Dependencies installed."
+
+echo ""
+echo "[4/7] Writing .env file..."
+
+{
+    echo "ELASTICSEARCH_URL=${ELASTICSEARCH_URL}"
+    echo "ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USER}"
+    echo "ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}"
+    echo "ELASTICSEARCH_API_KEY=${ELASTICSEARCH_APIKEY}"
+    echo "ELASTICSEARCH_INSECURE=true"
+    echo "KIBANA_URL=${KIBANA_URL}"
+    if [ -n "${ELASTICSEARCH_APIKEY}" ]; then
+        echo "KIBANA_API_KEY=${ELASTICSEARCH_APIKEY}"
+    fi
+    echo "INVESTIGATION_CONTEXT=workshop"
+} > "${REPO_DIR}/.env"
+
+echo "  .env written to ${REPO_DIR}/.env"
+
+echo ""
+echo "[5/7] Waiting for Elasticsearch..."
+
+if [ -n "${ELASTICSEARCH_APIKEY}" ]; then
+    _es_auth=( -H "Authorization: ApiKey ${ELASTICSEARCH_APIKEY}" )
+else
+    _es_auth=( -u "${ELASTICSEARCH_USER}:${ELASTICSEARCH_PASSWORD}" )
+fi
+
+MAX_RETRIES=60
+RETRY=0
+until curl -s -k "${_es_auth[@]}" "${ELASTICSEARCH_URL}/_cluster/health" 2>/dev/null \
+      | grep -q '"status":"green"\|"status":"yellow"'; do
+    RETRY=$((RETRY + 1))
+    if [ $RETRY -ge $MAX_RETRIES ]; then
+        echo "  WARNING: Elasticsearch did not become ready after ${MAX_RETRIES} attempts"
+        break
+    fi
+    echo "  Waiting... (attempt ${RETRY}/${MAX_RETRIES})"
+    sleep 5
+done
+echo "  Elasticsearch is ready."
+
+echo ""
+echo "[6/7] Waiting for Kibana..."
+
+if [ -n "${ELASTICSEARCH_APIKEY}" ]; then
+    _kb_auth=( -H "Authorization: ApiKey ${ELASTICSEARCH_APIKEY}" )
+else
+    _kb_auth=( -u "${ELASTICSEARCH_USER}:${ELASTICSEARCH_PASSWORD}" )
+fi
+
+MAX_RETRIES=60
+RETRY=0
+until curl -s "${_kb_auth[@]}" "${KIBANA_URL}/api/status" 2>/dev/null \
+      | grep -q '"level":"available"'; do
+    RETRY=$((RETRY + 1))
+    if [ $RETRY -ge $MAX_RETRIES ]; then
+        echo "  WARNING: Kibana did not become ready after ${MAX_RETRIES} attempts"
+        break
+    fi
+    echo "  Waiting for Kibana... (attempt ${RETRY}/${MAX_RETRIES})"
+    sleep 5
+done
+echo "  Kibana is ready."
+
+echo ""
+echo "[7/7] Generating sample data..."
+# shellcheck source=/dev/null
+source "${REPO_DIR}/.venv/bin/activate"
+cd "${REPO_DIR}"
+triage generate-sample --scenario workshop
+
+if ! grep -q 'Forensic Triage workshop' /root/.bashrc 2>/dev/null; then
+    cat >> /root/.bashrc <<'BASHRC'
+
+# Forensic Triage workshop
+export PATH="/root/forensic-triage/.venv/bin:$PATH"
+cd /root/forensic-triage
+BASHRC
+fi
+
+echo ""
+echo "=============================================="
+echo "[host-1] Challenge 1 Setup Complete!"
+echo "=============================================="

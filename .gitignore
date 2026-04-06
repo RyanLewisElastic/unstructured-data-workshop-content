@@ -1,0 +1,11 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+.sar_workflow_id
+sample_drive/
+*.egg-info/
+dist/
+build/
+.DS_Store

@@ -1,0 +1,29 @@
+#!/bin/bash
+set -euo pipefail
+
+source /root/forensic-triage/.venv/bin/activate
+cd /root/forensic-triage
+
+ES_URL="${ELASTICSEARCH_URL:-http://kubernetes-vm:30920}"
+ES_USER="${ELASTICSEARCH_USER:-elastic}"
+ES_PASS="${ELASTICSEARCH_PASSWORD:-}"
+ES_APIKEY="${ELASTICSEARCH_APIKEY:-}"
+
+if [ -n "${ES_APIKEY}" ]; then
+    _auth=( -H "Authorization: ApiKey ${ES_APIKEY}" )
+else
+    _auth=( -u "${ES_USER}:${ES_PASS}" )
+fi
+
+METADATA_COUNT=$(curl -s -k "${_auth[@]}" "${ES_URL}/triage-file-metadata/_count" | jq -r '.count // 0')
+RETRIEVAL_COUNT=$(curl -s -k "${_auth[@]}" "${ES_URL}/triage-retrieval/_count" | jq -r '.count // 0')
+
+if [ "$METADATA_COUNT" -lt 10 ]; then
+    fail-message "The triage-file-metadata index has $METADATA_COUNT documents. Run 'triage ingest sample_drive/ --clean' to ingest the data."
+fi
+
+if [ "$RETRIEVAL_COUNT" -lt 10 ]; then
+    fail-message "The triage-retrieval index has $RETRIEVAL_COUNT documents. The ingest may still be running -- wait for it to complete and try again."
+fi
+
+echo "Ingestion verified: $METADATA_COUNT metadata docs, $RETRIEVAL_COUNT retrieval docs."

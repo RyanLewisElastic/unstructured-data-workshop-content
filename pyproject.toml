@@ -1,0 +1,44 @@
+[project]
+name = "forensic-triage-workshop"
+version = "0.2.0"
+description = "Public workshop package: multimodal forensic triage with Elasticsearch, Agent Builder, and SAR workflows"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "elasticsearch>=8.17",
+    "httpx>=0.27",
+    "Pillow>=10.4",
+    "faker>=30.0",
+    "rich>=13.9",
+    "python-dotenv>=1.0",
+    "click>=8.1",
+    "unstructured[all-docs]",
+    "openpyxl>=3.1",
+    "python-docx>=1.1",
+    "python-pptx>=1.0",
+    "python-magic>=0.4.27",
+    "pypdf>=4.0",
+    "py7zr>=0.22",
+    "rarfile>=4.2",
+    "pycdlib>=1.14",
+    "langdetect>=1.0.9",
+]
+
+[project.optional-dependencies]
+whisper = [
+    "openai-whisper>=20231117",
+    "ffmpeg-python>=0.2",
+]
+llm = [
+    "openai>=1.0",
+    "anthropic>=0.30",
+]
+all = [
+    "forensic-triage-workshop[whisper,llm]",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project.scripts]
+triage = "src.triage:cli"
