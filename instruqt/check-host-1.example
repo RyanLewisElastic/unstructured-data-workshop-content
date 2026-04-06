@@ -1,8 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-source /root/forensic-triage/.venv/bin/activate
-cd /root/forensic-triage
+WORKSHOP_ROOT="${WORKSHOP_ROOT:-/workspace/workshop}"
+# shellcheck source=/dev/null
+source "${WORKSHOP_ROOT}/.venv/bin/activate"
+cd "${WORKSHOP_ROOT}"
 
 ES_URL="${ELASTICSEARCH_URL:-http://kubernetes-vm:30920}"
 ES_USER="${ELASTICSEARCH_USER:-elastic}"
@@ -19,7 +21,7 @@ METADATA_COUNT=$(curl -s -k "${_auth[@]}" "${ES_URL}/triage-file-metadata/_count
 RETRIEVAL_COUNT=$(curl -s -k "${_auth[@]}" "${ES_URL}/triage-retrieval/_count" | jq -r '.count // 0')
 
 if [ "$METADATA_COUNT" -lt 10 ]; then
-    fail-message "The triage-file-metadata index has $METADATA_COUNT documents. Run 'triage ingest sample_drive/ --clean' to ingest the data."
+    fail-message "The triage-file-metadata index has $METADATA_COUNT documents. Run 'cd /workspace/workshop && triage ingest sample_drive/ --clean' to ingest the data."
 fi
 
 if [ "$RETRIEVAL_COUNT" -lt 10 ]; then

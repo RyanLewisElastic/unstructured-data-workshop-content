@@ -1,15 +1,22 @@
 #!/bin/bash
 #
-# Example Instruqt lifecycle script for challenge 1 — runs on host-1
+# Instruqt lifecycle script for challenge 1 — runs on host-1
 #
-# Copy this file to your track as 01-ingest-the-data/setup-host-1 and chmod +x.
+# Copy to: 01-ingest-the-data/setup-host-1  (chmod +x)
 #
-# Instruqt typically sets:
+# Instruqt managed-VM presets typically open a shell in /workspace/workshop.
+# This script installs the triage CLI THERE (not under /root/forensic-triage).
+#
+# Env (usually injected by Instruqt):
 #   ELASTICSEARCH_URL, ELASTICSEARCH_USER, ELASTICSEARCH_PASSWORD,
 #   ELASTICSEARCH_APIKEY, KIBANA_URL
 #
 
 set -e
+
+# Default matches Elastic managed-vm workshop layout
+REPO_DIR="${WORKSHOP_REPO_DIR:-/workspace/workshop}"
+REPO_URL="${WORKSHOP_REPO_URL:-https://github.com/RyanLewisElastic/unstructured-data-workshop-content.git}"
 
 echo "=============================================="
 echo "[host-1] Challenge 1 Setup"
@@ -23,6 +30,7 @@ KIBANA_URL="${KIBANA_URL:-http://kubernetes-vm:30002}"
 
 echo ""
 echo "Checking environment variables..."
+echo "  REPO_DIR:               ${REPO_DIR}"
 echo "  ELASTICSEARCH_URL:      ${ELASTICSEARCH_URL}"
 echo "  ELASTICSEARCH_USER:     ${ELASTICSEARCH_USER}"
 echo "  ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:+(set)}"
@@ -41,9 +49,7 @@ apt-get install -y -qq \
 echo ""
 echo "[2/7] Cloning workshop repository..."
 
-REPO_DIR="/root/forensic-triage"
-REPO_URL="https://github.com/RyanLewisElastic/unstructured-data-workshop-content.git"
-
+mkdir -p "$(dirname "${REPO_DIR}")"
 if [ -d "${REPO_DIR}/.git" ]; then
     echo "  Repository already exists, pulling latest..."
     git -C "${REPO_DIR}" pull --ff-only || true
@@ -134,16 +140,21 @@ source "${REPO_DIR}/.venv/bin/activate"
 cd "${REPO_DIR}"
 triage generate-sample --scenario workshop
 
-if ! grep -q 'Forensic Triage workshop' /root/.bashrc 2>/dev/null; then
-    cat >> /root/.bashrc <<'BASHRC'
+MARKER="# Unstructured data triage workshop (Instruqt)"
+if ! grep -qF "${MARKER}" /root/.bashrc 2>/dev/null; then
+    cat >> /root/.bashrc <<BASHRC
 
-# Forensic Triage workshop
-export PATH="/root/forensic-triage/.venv/bin:$PATH"
-cd /root/forensic-triage
+${MARKER}
+export WORKSHOP_ROOT="${REPO_DIR}"
+export PATH="${REPO_DIR}/.venv/bin:\${PATH}"
+cd "${REPO_DIR}"
 BASHRC
 fi
 
 echo ""
 echo "=============================================="
 echo "[host-1] Challenge 1 Setup Complete!"
+echo "=============================================="
+echo "  Repo & sample_drive: ${REPO_DIR}"
+echo "  (cd there before running triage commands)"
 echo "=============================================="

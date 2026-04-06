@@ -55,6 +55,19 @@ If you only set `ELASTICSEARCH_API_KEY`, ensure `KIBANA_API_KEY` is set to the
 same value when running `triage setup-agent` (the bundled Node scripts read
 `KIBANA_API_KEY`).
 
+## Instruqt (Elastic managed VM)
+
+- **Install location:** copy `instruqt/setup-host-1.example` to your track as
+  `01-ingest-the-data/setup-host-1`. By default it clones this repo into
+  **`/workspace/workshop`** and runs `triage generate-sample --scenario workshop`
+  there (same path participants land in on many Elastic presets).
+- **Check scripts:** use `instruqt/check-host-1.example` paths (`WORKSHOP_ROOT`).
+- **Agent Builder LLM:** replacing workshop challenges does **not** configure
+  Kibana’s default AI connector. See **`instruqt/LLM_CONNECTOR.md`** and challenge
+  2 in the lab guide (GenAI Settings + OpenAI-compatible connector for LiteLLM).
+
+Override clone target with env `WORKSHOP_REPO_DIR` or repo URL with `WORKSHOP_REPO_URL`.
+
 ## Layout
 
 | Path | Purpose |
@@ -62,6 +75,7 @@ same value when running `triage setup-agent` (the bundled Node scripts read
 | `src/` | Python package (`triage` CLI) |
 | `workflows/sar-report.yaml` | Elastic Workflow deployed by `setup-agent` |
 | `.agents/skills/kibana-agent-builder/scripts/` | Node helpers for Agent Builder API |
+| `instruqt/` | `setup-host-1.example`, check/solve examples, `LLM_CONNECTOR.md` |
 
 ## License
 

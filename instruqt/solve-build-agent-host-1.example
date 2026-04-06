@@ -1,0 +1,9 @@
+#!/bin/bash
+set -euxo pipefail
+
+WORKSHOP_ROOT="${WORKSHOP_ROOT:-/workspace/workshop}"
+# shellcheck source=/dev/null
+source "${WORKSHOP_ROOT}/.venv/bin/activate"
+cd "${WORKSHOP_ROOT}"
+
+triage setup-agent
