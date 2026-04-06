@@ -83,7 +83,7 @@ def create_inference_endpoint(es: Elasticsearch, config: Config) -> None:
     }
 
     try:
-        es.inference.put(
+        es.options(request_timeout=300).inference.put(
             inference_id=ELASTIC_INFERENCE_ENDPOINT_ID,
             task_type="text_embedding",
             body=body,
@@ -346,10 +346,12 @@ def index_retrieval_content(es: Elasticsearch, files: Sequence[ExtractedFile]) -
     """Bulk-index file content into the semantic_text retrieval index.
 
     Elasticsearch handles chunking and embedding generation automatically
-    via the Elastic Inference Service endpoint.
+    via the local e5 model. Each index call may take a few seconds while
+    the model generates embeddings.
     """
     indexed = 0
     errors_count = 0
+    es_slow = es.options(request_timeout=120)
 
     with Progress() as progress:
         task = progress.add_task("Indexing retrieval content...", total=len(files))
@@ -370,7 +372,7 @@ def index_retrieval_content(es: Elasticsearch, files: Sequence[ExtractedFile]) -
                 if f.extraction_method:
                     doc["extraction_method"] = f.extraction_method
 
-                es.index(
+                es_slow.index(
                     index=INDEX_RETRIEVAL,
                     id=f.file_path,
                     document=doc,
