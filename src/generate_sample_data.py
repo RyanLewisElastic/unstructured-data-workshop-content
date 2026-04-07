@@ -3159,6 +3159,147 @@ def generate_noise(base: Path, progress, task) -> int:
     return count
 
 
+def _generate_workshop_noise(base: Path, progress, task) -> int:
+    """Generate ~80 mundane noise files for the workshop scenario."""
+    count = 0
+
+    photos_dir = base / "Media" / "Photos" / "vacation"
+    photos_dir.mkdir(parents=True, exist_ok=True)
+    vacation_spots = [
+        "beach_panorama", "hotel_pool", "restaurant_view", "city_skyline",
+        "mountain_vista", "sunset_cruise", "local_food", "temple_visit",
+        "street_market", "airport_lounge",
+    ]
+    for name in vacation_spots:
+        dt = fake.date_time_between(start_date="-3y", end_date="now")
+        fname = f"IMG_{dt.strftime('%Y%m%d_%H%M%S')}_{name}.jpg"
+        img_bytes = _make_image(f"Vacation photo\n{name.replace('_', ' ').title()}\n{dt.strftime('%B %Y')}", 640, 480)
+        (photos_dir / fname).write_bytes(img_bytes)
+        count += 1; progress.advance(task)
+
+    receipts_dir = base / "Media" / "Photos"
+    for i in range(5):
+        txt = f"RECEIPT #{random.randint(1000, 9999)}\n{fake.company()}\n${random.uniform(5, 200):.2f}"
+        img_bytes = _make_image(txt, 400, 300, bg="#f5f5f0")
+        (receipts_dir / f"receipt_{i:03d}.jpg").write_bytes(img_bytes)
+        count += 1; progress.advance(task)
+
+    work_dir = base / "Work" / "Projects"
+    work_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(5):
+        (work_dir / f"project_notes_{i}.txt").write_text(
+            f"Project Meeting Notes - {fake.date_this_year()}\n\n{fake.paragraphs(3, ext_word_list=None)}\n",
+            encoding="utf-8",
+        )
+        count += 1; progress.advance(task)
+
+    hr_dir = base / "Work" / "HR"
+    hr_dir.mkdir(parents=True, exist_ok=True)
+    (hr_dir / "employee_handbook_2024.txt").write_text(
+        "Employee Handbook 2024\n\n" + "\n\n".join(fake.paragraphs(5)), encoding="utf-8"
+    )
+    count += 1; progress.advance(task)
+
+    personal_dir = base / "Personal" / "Lists"
+    personal_dir.mkdir(parents=True, exist_ok=True)
+    (personal_dir / "grocery_list.txt").write_text(
+        "Grocery List\n" + "\n".join(f"- {fake.word()}" for _ in range(15)), encoding="utf-8"
+    )
+    count += 1; progress.advance(task)
+    (personal_dir / "todo_home_repairs.txt").write_text(
+        "Home Repairs\n" + "\n".join(f"[ ] {fake.sentence()}" for _ in range(8)), encoding="utf-8"
+    )
+    count += 1; progress.advance(task)
+
+    recipes_dir = base / "Personal" / "Recipes"
+    recipes_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(3):
+        (recipes_dir / f"recipe_{fake.word()}.txt").write_text(
+            f"Recipe: {fake.sentence(nb_words=3)}\n\nIngredients:\n" +
+            "\n".join(f"- {fake.word()}" for _ in range(6)) +
+            f"\n\nInstructions:\n{fake.paragraph()}", encoding="utf-8"
+        )
+        count += 1; progress.advance(task)
+
+    desktop_dir = base / "Desktop"
+    desktop_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(4):
+        (desktop_dir / f"note_{i}.txt").write_text(fake.paragraph(), encoding="utf-8")
+        count += 1; progress.advance(task)
+
+    dl_dir = base / "Downloads"
+    dl_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(5):
+        (dl_dir / f"download_{fake.file_name(extension='txt')}").write_text(
+            fake.paragraph(nb_sentences=10), encoding="utf-8"
+        )
+        count += 1; progress.advance(task)
+
+    temp_dir = base / "Temp"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(5):
+        (temp_dir / f"tmp_{random.randint(10000, 99999)}.txt").write_text(
+            fake.text(max_nb_chars=200), encoding="utf-8"
+        )
+        count += 1; progress.advance(task)
+
+    logs_dir = base / "AppData" / "Logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    for name in ["chrome", "system", "update"]:
+        lines = []
+        for _ in range(20):
+            dt = fake.date_time_this_year()
+            lines.append(f"[{dt.isoformat()}] INFO: {fake.sentence()}")
+        (logs_dir / f"{name}.log").write_text("\n".join(lines), encoding="utf-8")
+        count += 1; progress.advance(task)
+
+    cache_dir = base / "AppData" / "Cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(5):
+        (cache_dir / f"cache_{random.randint(100000, 999999)}.tmp").write_text(
+            fake.text(max_nb_chars=100), encoding="utf-8"
+        )
+        count += 1; progress.advance(task)
+
+    pf_dir = base / "Personal" / "Finance"
+    pf_dir.mkdir(parents=True, exist_ok=True)
+    (pf_dir / "budget_2024.csv").write_text(
+        "Month,Income,Rent,Groceries,Utilities,Savings\n" +
+        "\n".join(
+            f"{m},{random.randint(4000, 6000)},{1200},{random.randint(300, 600)},{random.randint(100, 250)},{random.randint(200, 800)}"
+            for m in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        ), encoding="utf-8"
+    )
+    count += 1; progress.advance(task)
+
+    pp_dir = base / "Personal" / "Photos"
+    pp_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(5):
+        img_bytes = _make_image(f"Personal Photo {i+1}\n{fake.date_this_year()}", 640, 480)
+        (pp_dir / f"photo_{i:03d}.jpg").write_bytes(img_bytes)
+        count += 1; progress.advance(task)
+
+    ref_dir = base / "Documents" / "Reference"
+    ref_dir.mkdir(parents=True, exist_ok=True)
+    for name in ["tax_guide_2024", "insurance_policy", "lease_agreement"]:
+        (ref_dir / f"{name}.txt").write_text(
+            f"{name.replace('_', ' ').title()}\n\n" + "\n\n".join(fake.paragraphs(4)),
+            encoding="utf-8"
+        )
+        count += 1; progress.advance(task)
+
+    pres_dir = base / "Work" / "Presentations"
+    pres_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(2):
+        (pres_dir / f"Q{i+3}_review.txt").write_text(
+            f"Quarterly Review Q{i+3} 2024\n\n" + "\n\n".join(fake.paragraphs(3)),
+            encoding="utf-8"
+        )
+        count += 1; progress.advance(task)
+
+    return count
+
+
 def generate_sample_drive(
     output_dir: Path | None = None,
     *,
@@ -3171,7 +3312,7 @@ def generate_sample_drive(
         output_dir: Target directory (defaults to sample_drive/).
         skip_noise: Skip noise file generation.
         scenario: "default" for the 3-thread demo, "workshop" for the
-                  single-thread Instruqt workshop scenario.
+                  single-thread Instruqt workshop scenario (~100 files).
     """
     base = output_dir or SAMPLE_DRIVE_DIR
     if base.exists():
@@ -3180,41 +3321,48 @@ def generate_sample_drive(
     base.mkdir(parents=True)
 
     is_workshop = scenario == "workshop"
-    evidence_estimated = 20 if is_workshop else 23
-    noise_estimated = 0 if skip_noise else 500
-    total_estimated = 32 + 39 + 37 + 23 + 15 + evidence_estimated + noise_estimated
 
-    with Progress() as progress:
-        task = progress.add_task("Generating multilingual sample data...", total=total_estimated)
+    if is_workshop:
+        total_estimated = 100
+        with Progress() as progress:
+            task = progress.add_task("Generating workshop sample data...", total=total_estimated)
+            counts = {
+                "Evidence Threads": generate_workshop_evidence(base, progress, task),
+                "Background": _generate_workshop_noise(base, progress, task),
+            }
+    else:
+        evidence_estimated = 23
+        noise_estimated = 0 if skip_noise else 500
+        total_estimated = 32 + 39 + 37 + 23 + 15 + evidence_estimated + noise_estimated
 
-        counts = {
-            "Financial": generate_financial(base, progress, task),
-            "Communications": generate_communications(base, progress, task),
-            "Media": generate_media(base, progress, task),
-            "Business Records": generate_business_records(base, progress, task),
-            "Digital Artifacts": generate_digital_artifacts(base, progress, task),
-        }
+        with Progress() as progress:
+            task = progress.add_task("Generating multilingual sample data...", total=total_estimated)
 
-        if is_workshop:
-            counts["Evidence Threads"] = generate_workshop_evidence(base, progress, task)
-        else:
-            counts["Evidence Threads"] = generate_evidence_threads(base, progress, task)
+            counts = {
+                "Financial": generate_financial(base, progress, task),
+                "Communications": generate_communications(base, progress, task),
+                "Media": generate_media(base, progress, task),
+                "Business Records": generate_business_records(base, progress, task),
+                "Digital Artifacts": generate_digital_artifacts(base, progress, task),
+                "Evidence Threads": generate_evidence_threads(base, progress, task),
+            }
 
-        if not skip_noise:
-            counts["Noise"] = generate_noise(base, progress, task)
+            if not skip_noise:
+                counts["Noise"] = generate_noise(base, progress, task)
 
     total = sum(counts.values())
-    signal = total - counts.get("Noise", 0)
-    noise = counts.get("Noise", 0)
+    signal = counts.get("Evidence Threads", 0)
+    noise = total - signal
     print(f"\nGenerated {total} files in {base}")
     for cat, n in counts.items():
         print(f"  {cat}: {n} files")
-    print(f"\n  Languages: {', '.join(LOCALES)}")
     if is_workshop:
-        print("  Scenario: workshop (sanctions evasion)")
-    else:
-        print("  Evidence threads: Operation Oceanic, Operation Alpine, Operation Silk Road")
-    if noise:
+        print(f"\n  Scenario: workshop (sanctions evasion)")
         print(f"  Signal-to-noise ratio: ~{signal}:{noise} ({signal / total * 100:.0f}% signal)")
+    else:
+        print(f"\n  Languages: {', '.join(LOCALES)}")
+        print("  Evidence threads: Operation Oceanic, Operation Alpine, Operation Silk Road")
+        if noise:
+            print(f"  Signal-to-noise ratio: ~{signal}:{noise} ({signal / total * 100:.0f}% signal)")
 
     return base
