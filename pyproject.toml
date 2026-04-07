@@ -1,8 +1,7 @@
 [project]
-name = "forensic-triage-workshop"
+name = "forensic-triage"
 version = "0.2.0"
-description = "Public workshop package: multimodal forensic triage with Elasticsearch, Agent Builder, and SAR workflows"
-readme = "README.md"
+description = "Multimodal forensic data triage tool using Elasticsearch, entity extraction, and Jina v5 nano"
 requires-python = ">=3.11"
 dependencies = [
     "elasticsearch>=8.17",
@@ -34,7 +33,7 @@ llm = [
     "anthropic>=0.30",
 ]
 all = [
-    "forensic-triage-workshop[whisper,llm]",
+    "forensic-triage[whisper,llm]",
 ]
 
 [tool.setuptools.packages.find]

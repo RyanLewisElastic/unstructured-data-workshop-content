@@ -6,8 +6,7 @@ financial documents, communications, media, business records, digital
 artifacts, and everyday personal/work clutter.
 
 Content is generated in 8 languages (English, Spanish, Chinese, German, Arabic,
-Russian, Japanese, Portuguese) to test the 108-language support of
-multilingual embedding support.
+Russian, Japanese, Portuguese) to test multilingual embedding support.
 """
 
 from __future__ import annotations
@@ -3163,6 +3162,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
     """Generate ~80 mundane noise files for the workshop scenario."""
     count = 0
 
+    # Personal photos (vacation, misc)
     photos_dir = base / "Media" / "Photos" / "vacation"
     photos_dir.mkdir(parents=True, exist_ok=True)
     vacation_spots = [
@@ -3177,6 +3177,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
         (photos_dir / fname).write_bytes(img_bytes)
         count += 1; progress.advance(task)
 
+    # Receipt photos
     receipts_dir = base / "Media" / "Photos"
     for i in range(5):
         txt = f"RECEIPT #{random.randint(1000, 9999)}\n{fake.company()}\n${random.uniform(5, 200):.2f}"
@@ -3184,6 +3185,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
         (receipts_dir / f"receipt_{i:03d}.jpg").write_bytes(img_bytes)
         count += 1; progress.advance(task)
 
+    # Work documents
     work_dir = base / "Work" / "Projects"
     work_dir.mkdir(parents=True, exist_ok=True)
     for i in range(5):
@@ -3200,6 +3202,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
     )
     count += 1; progress.advance(task)
 
+    # Personal lists and recipes
     personal_dir = base / "Personal" / "Lists"
     personal_dir.mkdir(parents=True, exist_ok=True)
     (personal_dir / "grocery_list.txt").write_text(
@@ -3221,12 +3224,14 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
         )
         count += 1; progress.advance(task)
 
+    # Desktop clutter
     desktop_dir = base / "Desktop"
     desktop_dir.mkdir(parents=True, exist_ok=True)
     for i in range(4):
         (desktop_dir / f"note_{i}.txt").write_text(fake.paragraph(), encoding="utf-8")
         count += 1; progress.advance(task)
 
+    # Downloads
     dl_dir = base / "Downloads"
     dl_dir.mkdir(parents=True, exist_ok=True)
     for i in range(5):
@@ -3235,6 +3240,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
         )
         count += 1; progress.advance(task)
 
+    # Temp files
     temp_dir = base / "Temp"
     temp_dir.mkdir(parents=True, exist_ok=True)
     for i in range(5):
@@ -3243,6 +3249,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
         )
         count += 1; progress.advance(task)
 
+    # App logs
     logs_dir = base / "AppData" / "Logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
     for name in ["chrome", "system", "update"]:
@@ -3253,6 +3260,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
         (logs_dir / f"{name}.log").write_text("\n".join(lines), encoding="utf-8")
         count += 1; progress.advance(task)
 
+    # Cache files
     cache_dir = base / "AppData" / "Cache"
     cache_dir.mkdir(parents=True, exist_ok=True)
     for i in range(5):
@@ -3261,6 +3269,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
         )
         count += 1; progress.advance(task)
 
+    # Personal finance (mundane)
     pf_dir = base / "Personal" / "Finance"
     pf_dir.mkdir(parents=True, exist_ok=True)
     (pf_dir / "budget_2024.csv").write_text(
@@ -3272,6 +3281,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
     )
     count += 1; progress.advance(task)
 
+    # Personal photos
     pp_dir = base / "Personal" / "Photos"
     pp_dir.mkdir(parents=True, exist_ok=True)
     for i in range(5):
@@ -3279,6 +3289,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
         (pp_dir / f"photo_{i:03d}.jpg").write_bytes(img_bytes)
         count += 1; progress.advance(task)
 
+    # Reference documents
     ref_dir = base / "Documents" / "Reference"
     ref_dir.mkdir(parents=True, exist_ok=True)
     for name in ["tax_guide_2024", "insurance_policy", "lease_agreement"]:
@@ -3288,6 +3299,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
         )
         count += 1; progress.advance(task)
 
+    # Presentations
     pres_dir = base / "Work" / "Presentations"
     pres_dir.mkdir(parents=True, exist_ok=True)
     for i in range(2):
