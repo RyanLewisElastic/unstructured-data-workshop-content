@@ -123,7 +123,7 @@ steps:
 
   - name: list_financial_refs
     type: foreach
-    foreach: "{{ steps.search_financial_refs.output.values | json }}"
+    foreach: "{{ steps.search_financial_refs.output.values }}"
     steps:
       - name: log_financial_ref
         type: console
@@ -139,7 +139,7 @@ steps:
 
   - name: list_transactions
     type: foreach
-    foreach: "{{ steps.search_transactions.output.values | json }}"
+    foreach: "{{ steps.search_transactions.output.values }}"
     steps:
       - name: log_transaction
         type: console
@@ -156,7 +156,7 @@ steps:
 
   - name: list_communications
     type: foreach
-    foreach: "{{ steps.search_communications.output.values | json }}"
+    foreach: "{{ steps.search_communications.output.values }}"
     steps:
       - name: log_communication
         type: console
@@ -174,7 +174,7 @@ steps:
 
   - name: list_all_evidence
     type: foreach
-    foreach: "{{ steps.search_all_docs.output.values | json }}"
+    foreach: "{{ steps.search_all_docs.output.values }}"
     steps:
       - name: log_evidence
         type: console
@@ -202,10 +202,10 @@ steps:
         transaction_count: "{{ steps.count_totals.output.values[0][1] }}"
         communication_count: "{{ steps.count_totals.output.values[0][2] }}"
         financial_ref_count: "{{ steps.count_totals.output.values[0][3] }}"
-        evidence_files: "{{ steps.search_all_docs.output.values | json }}"
-        financial_documents: "{{ steps.search_transactions.output.values | json }}"
-        communications: "{{ steps.search_communications.output.values | json }}"
-        financial_refs: "{{ steps.search_financial_refs.output.values | json }}"
+        evidence_files: "{{ steps.search_all_docs.output.values }}"
+        financial_documents: "{{ steps.search_transactions.output.values }}"
+        communications: "{{ steps.search_communications.output.values }}"
+        financial_refs: "{{ steps.search_financial_refs.output.values }}"
         report_text: |
           SUSPICIOUS ACTIVITY REPORT (SAR)
           FinCEN Form 111 -- Evidence Summary
