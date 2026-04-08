@@ -3159,7 +3159,7 @@ def generate_noise(base: Path, progress, task) -> int:
 
 
 def _generate_workshop_noise(base: Path, progress, task) -> int:
-    """Generate ~80 mundane noise files for the workshop scenario."""
+    """Generate ~180 mundane noise files for the workshop scenario."""
     count = 0
 
     # Personal photos (vacation, misc)
@@ -3168,7 +3168,8 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
     vacation_spots = [
         "beach_panorama", "hotel_pool", "restaurant_view", "city_skyline",
         "mountain_vista", "sunset_cruise", "local_food", "temple_visit",
-        "street_market", "airport_lounge",
+        "street_market", "airport_lounge", "waterfall_hike", "snorkeling",
+        "resort_lobby", "train_window", "souvenir_shop",
     ]
     for name in vacation_spots:
         dt = fake.date_time_between(start_date="-3y", end_date="now")
@@ -3179,16 +3180,29 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
 
     # Receipt photos
     receipts_dir = base / "Media" / "Photos"
-    for i in range(5):
+    for i in range(10):
         txt = f"RECEIPT #{random.randint(1000, 9999)}\n{fake.company()}\n${random.uniform(5, 200):.2f}"
         img_bytes = _make_image(txt, 400, 300, bg="#f5f5f0")
         (receipts_dir / f"receipt_{i:03d}.jpg").write_bytes(img_bytes)
         count += 1; progress.advance(task)
 
+    # Misc personal photos
+    misc_dir = base / "Media" / "Photos" / "misc"
+    misc_dir.mkdir(parents=True, exist_ok=True)
+    misc_labels = ["dog_park", "garden", "cat_sleeping", "game_night",
+                   "morning_coffee", "farmers_market", "bike_ride",
+                   "snow_day", "backyard_pool", "friends_dinner"]
+    for label in misc_labels:
+        dt = fake.date_time_between(start_date="-3y", end_date="now")
+        fname = f"IMG_{dt.strftime('%Y%m%d_%H%M%S')}_{label}.jpg"
+        img_bytes = _make_image(f"Photo\n{label.replace('_', ' ').title()}\n{dt.strftime('%B %Y')}", 640, 480)
+        (misc_dir / fname).write_bytes(img_bytes)
+        count += 1; progress.advance(task)
+
     # Work documents
     work_dir = base / "Work" / "Projects"
     work_dir.mkdir(parents=True, exist_ok=True)
-    for i in range(5):
+    for i in range(10):
         (work_dir / f"project_notes_{i}.txt").write_text(
             f"Project Meeting Notes - {fake.date_this_year()}\n\n{fake.paragraphs(3, ext_word_list=None)}\n",
             encoding="utf-8",
@@ -3201,6 +3215,58 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
         "Employee Handbook 2024\n\n" + "\n\n".join(fake.paragraphs(5)), encoding="utf-8"
     )
     count += 1; progress.advance(task)
+
+    # Work emails (mundane)
+    work_email_dir = base / "Work" / "Email"
+    work_email_dir.mkdir(parents=True, exist_ok=True)
+    work_subjects = [
+        "PTO Request", "All-Hands Meeting - Q3 Review", "IT: Password Reset Required",
+        "Re: Standup notes", "Conference Room B reserved", "Company picnic RSVP",
+        "Expense reports due end of month", "Welcome new hire!",
+        "Re: Quarterly OKR check-in", "VPN maintenance tonight",
+        "Benefits enrollment deadline", "Team lunch Friday",
+        "Printer on 3rd floor jammed", "Updated PTO policy",
+        "Parking lot B closed next week",
+    ]
+    for i, subj in enumerate(work_subjects):
+        msg = EmailMessage()
+        msg["Subject"] = subj
+        msg["From"] = fake.email()
+        msg["To"] = fake.email()
+        msg["Date"] = fake.date_time_this_year().strftime("%a, %d %b %Y %H:%M:%S +0000")
+        msg.set_content(fake.paragraph(nb_sentences=4))
+        (work_email_dir / f"work_{i:03d}.eml").write_text(msg.as_string(), encoding="utf-8")
+        count += 1; progress.advance(task)
+
+    # Personal emails (mundane)
+    personal_email_dir = base / "Personal" / "Email"
+    personal_email_dir.mkdir(parents=True, exist_ok=True)
+    personal_subjects = [
+        "Re: Dinner tonight?", "Kid's soccer schedule", "Fwd: Netflix recommendation",
+        "Dentist appointment Thursday", "Happy Birthday!!!", "Weekend BBQ plans",
+        "Flight confirmation JFK-LAX", "Running group Saturday", "Book club pick",
+        "Grocery list from Mom", "Amazon order shipped", "Gym membership renewal",
+        "Fwd: School newsletter", "Concert tickets!", "Plumber coming Tuesday",
+    ]
+    for i, subj in enumerate(personal_subjects):
+        msg = EmailMessage()
+        msg["Subject"] = subj
+        msg["From"] = fake.email()
+        msg["To"] = fake.email()
+        msg["Date"] = fake.date_time_this_year().strftime("%a, %d %b %Y %H:%M:%S +0000")
+        msg.set_content(fake.paragraph(nb_sentences=5))
+        (personal_email_dir / f"personal_{i:03d}.eml").write_text(msg.as_string(), encoding="utf-8")
+        count += 1; progress.advance(task)
+
+    # Expense reports
+    expense_dir = base / "Work" / "Expenses"
+    expense_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(6):
+        rows = ["Date,Description,Amount,Category"]
+        for _ in range(random.randint(3, 8)):
+            rows.append(f"{fake.date_this_year()},{fake.sentence(nb_words=3)},{random.uniform(10, 300):.2f},{random.choice(['Travel', 'Meals', 'Supplies', 'Software'])}")
+        (expense_dir / f"expense_report_{i:03d}.csv").write_text("\n".join(rows), encoding="utf-8")
+        count += 1; progress.advance(task)
 
     # Personal lists and recipes
     personal_dir = base / "Personal" / "Lists"
@@ -3216,7 +3282,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
 
     recipes_dir = base / "Personal" / "Recipes"
     recipes_dir.mkdir(parents=True, exist_ok=True)
-    for i in range(3):
+    for i in range(6):
         (recipes_dir / f"recipe_{fake.word()}.txt").write_text(
             f"Recipe: {fake.sentence(nb_words=3)}\n\nIngredients:\n" +
             "\n".join(f"- {fake.word()}" for _ in range(6)) +
@@ -3234,7 +3300,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
     # Downloads
     dl_dir = base / "Downloads"
     dl_dir.mkdir(parents=True, exist_ok=True)
-    for i in range(5):
+    for i in range(10):
         (dl_dir / f"download_{fake.file_name(extension='txt')}").write_text(
             fake.paragraph(nb_sentences=10), encoding="utf-8"
         )
@@ -3243,7 +3309,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
     # Temp files
     temp_dir = base / "Temp"
     temp_dir.mkdir(parents=True, exist_ok=True)
-    for i in range(5):
+    for i in range(8):
         (temp_dir / f"tmp_{random.randint(10000, 99999)}.txt").write_text(
             fake.text(max_nb_chars=200), encoding="utf-8"
         )
@@ -3263,7 +3329,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
     # Cache files
     cache_dir = base / "AppData" / "Cache"
     cache_dir.mkdir(parents=True, exist_ok=True)
-    for i in range(5):
+    for i in range(8):
         (cache_dir / f"cache_{random.randint(100000, 999999)}.tmp").write_text(
             fake.text(max_nb_chars=100), encoding="utf-8"
         )
@@ -3284,7 +3350,7 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
     # Personal photos
     pp_dir = base / "Personal" / "Photos"
     pp_dir.mkdir(parents=True, exist_ok=True)
-    for i in range(5):
+    for i in range(10):
         img_bytes = _make_image(f"Personal Photo {i+1}\n{fake.date_this_year()}", 640, 480)
         (pp_dir / f"photo_{i:03d}.jpg").write_bytes(img_bytes)
         count += 1; progress.advance(task)
@@ -3335,7 +3401,7 @@ def generate_sample_drive(
     is_workshop = scenario == "workshop"
 
     if is_workshop:
-        total_estimated = 100
+        total_estimated = 200
         with Progress() as progress:
             task = progress.add_task("Generating workshop sample data...", total=total_estimated)
             counts = {
