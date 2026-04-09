@@ -3,8 +3,8 @@
 # Category: security/financial-investigation
 #
 # Generates a FinCEN-aligned Suspicious Activity Report from seized data
-# source evidence. Uses ONLY ES|QL queries -- every field comes from actual
-# indexed data with no hallucination risk.
+# source evidence. Uses deterministic ES|QL queries -- every field comes
+# from actual indexed data, producing fully reproducible output.
 #
 # Uses full-text MATCH on text_content to find entity mentions (person names,
 # company names, etc.) since these are NOT pre-extracted as keyword fields.
