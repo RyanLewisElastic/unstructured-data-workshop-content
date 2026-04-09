@@ -3159,7 +3159,7 @@ def generate_noise(base: Path, progress, task) -> int:
 
 
 def _generate_workshop_noise(base: Path, progress, task) -> int:
-    """Generate ~180 mundane noise files for the workshop scenario."""
+    """Generate ~220 mundane noise files for the workshop scenario."""
     count = 0
 
     # Personal photos (vacation, misc)
@@ -3372,6 +3372,69 @@ def _generate_workshop_noise(base: Path, progress, task) -> int:
         (pres_dir / f"Q{i+3}_review.txt").write_text(
             f"Quarterly Review Q{i+3} 2024\n\n" + "\n\n".join(fake.paragraphs(3)),
             encoding="utf-8"
+        )
+        count += 1; progress.advance(task)
+
+    # Social media exports
+    social_dir = base / "Personal" / "SocialMedia"
+    social_dir.mkdir(parents=True, exist_ok=True)
+    for platform in ["instagram", "twitter", "facebook", "tiktok", "linkedin"]:
+        (social_dir / f"{platform}_export.json").write_text(
+            json.dumps({"platform": platform, "exported": str(fake.date_this_year()),
+                        "posts": [{"text": fake.sentence(), "date": str(fake.date_this_year())} for _ in range(5)]},
+                       indent=2), encoding="utf-8"
+        )
+        count += 1; progress.advance(task)
+
+    # Bookmarks and browser data
+    browser_dir = base / "AppData" / "Browser"
+    browser_dir.mkdir(parents=True, exist_ok=True)
+    bookmarks = [{"title": fake.sentence(nb_words=4), "url": fake.url()} for _ in range(20)]
+    (browser_dir / "bookmarks.json").write_text(json.dumps(bookmarks, indent=2), encoding="utf-8")
+    count += 1; progress.advance(task)
+    (browser_dir / "history_export.csv").write_text(
+        "timestamp,url,title\n" +
+        "\n".join(f"{fake.date_time_this_year()},{fake.url()},{fake.sentence(nb_words=4)}" for _ in range(30)),
+        encoding="utf-8"
+    )
+    count += 1; progress.advance(task)
+
+    # Meeting notes
+    meetings_dir = base / "Work" / "Meetings"
+    meetings_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(8):
+        (meetings_dir / f"meeting_{fake.date_this_year()}.txt").write_text(
+            f"Meeting Notes - {fake.date_this_year()}\nAttendees: {', '.join(fake.name() for _ in range(3))}\n\n{fake.paragraph(nb_sentences=6)}",
+            encoding="utf-8"
+        )
+        count += 1; progress.advance(task)
+
+    # Personal journal entries
+    journal_dir = base / "Personal" / "Journal"
+    journal_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(10):
+        dt = fake.date_this_year()
+        (journal_dir / f"entry_{dt}.txt").write_text(
+            f"Journal - {dt}\n\n{fake.paragraph(nb_sentences=8)}", encoding="utf-8"
+        )
+        count += 1; progress.advance(task)
+
+    # Desktop screenshots
+    screenshots_dir = base / "Desktop" / "Screenshots"
+    screenshots_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(8):
+        dt = fake.date_time_this_year()
+        img_bytes = _make_image(f"Screenshot\n{dt.strftime('%Y-%m-%d %H:%M')}", 800, 600)
+        (screenshots_dir / f"screenshot_{dt.strftime('%Y%m%d_%H%M%S')}.jpg").write_bytes(img_bytes)
+        count += 1; progress.advance(task)
+
+    # Misc config files
+    config_dir = base / "AppData" / "Config"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    for name in ["settings", "preferences", "user_config", "app_state", "sync_state"]:
+        (config_dir / f"{name}.json").write_text(
+            json.dumps({"version": "1.0", "updated": str(fake.date_this_year()),
+                        name: fake.sentence()}, indent=2), encoding="utf-8"
         )
         count += 1; progress.advance(task)
 
