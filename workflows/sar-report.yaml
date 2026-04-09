@@ -93,9 +93,9 @@ steps:
       body:
         query: 'FROM triage-file-metadata | WHERE MATCH(text_content, "{{ inputs.entity_name }}") | STATS total_docs = COUNT(*), financial_docs = SUM(CASE(file_extension == ".csv" OR file_extension == ".txt", 1, 0)), communications = SUM(CASE(file_extension == ".eml" OR file_extension == ".json", 1, 0)), with_fin_refs = SUM(CASE(entities_financial_ref IS NOT NULL, 1, 0))'
 
-  # === CONSOLE REPORT (step-by-step execution log) ==========================
+  # === RENDER FULL REPORT (single step so tool invocation returns it all) ====
 
-  - name: report_header
+  - name: render_report
     type: console
     with:
       message: |
@@ -113,78 +113,31 @@ steps:
         Communications:          {{ steps.count_totals.output.values[0][2] }}
         With Financial Refs:     {{ steps.count_totals.output.values[0][3] }}
 
-  - name: part2_header
-    type: console
-    with:
-      message: |
         PART II -- FINANCIAL REFERENCES & TRANSACTIONS
         -----------------------------------------------
         A. Documents with Financial Identifiers ({{ steps.search_financial_refs.output.values.size }}):
-
-  - name: list_financial_refs
-    type: foreach
-    foreach: "{{ steps.search_financial_refs.output.values }}"
-    steps:
-      - name: log_financial_ref
-        type: console
-        with:
-          message: "  * {{ foreach.item[1] }}  ({{ foreach.item[0] }})  refs={{ foreach.item[2] }}"
-
-  - name: part2b_header
-    type: console
-    with:
-      message: |
+        {% for row in steps.search_financial_refs.output.values %}
+          * {{ row[1] }}  ({{ row[0] }})  refs={{ row[2] }}
+        {% endfor %}
 
         B. Financial Documents ({{ steps.search_transactions.output.values.size }}):
-
-  - name: list_transactions
-    type: foreach
-    foreach: "{{ steps.search_transactions.output.values }}"
-    steps:
-      - name: log_transaction
-        type: console
-        with:
-          message: "  * {{ foreach.item[1] }}  ({{ foreach.item[0] }})  refs={{ foreach.item[3] }}  preview={{ foreach.item[2] | truncate: 120 }}"
-
-  - name: part3_header
-    type: console
-    with:
-      message: |
+        {% for row in steps.search_transactions.output.values %}
+          * {{ row[1] }}  ({{ row[0] }})  refs={{ row[3] }}  preview={{ row[2] | truncate: 120 }}
+        {% endfor %}
 
         PART III -- COMMUNICATIONS ({{ steps.search_communications.output.values.size }})
         --------------------------------------------------
-
-  - name: list_communications
-    type: foreach
-    foreach: "{{ steps.search_communications.output.values }}"
-    steps:
-      - name: log_communication
-        type: console
-        with:
-          message: "  * {{ foreach.item[1] }}  from={{ foreach.item[2] }}  to={{ foreach.item[3] }}  subject={{ foreach.item[4] }}  preview={{ foreach.item[5] | truncate: 120 }}"
-
-  - name: part4_header
-    type: console
-    with:
-      message: |
+        {% for row in steps.search_communications.output.values %}
+          * {{ row[1] }}  from={{ row[2] }}  to={{ row[3] }}  subject={{ row[4] }}  preview={{ row[5] | truncate: 120 }}
+        {% endfor %}
 
         PART IV -- SUPPORTING DOCUMENTATION INDEX
         ------------------------------------------
         All files referencing subject ({{ steps.search_all_docs.output.values.size }}):
+        {% for row in steps.search_all_docs.output.values %}
+          [{{ row[2] }}] {{ row[0] }}  emails={{ row[7] }}  fin_refs={{ row[8] }}
+        {% endfor %}
 
-  - name: list_all_evidence
-    type: foreach
-    foreach: "{{ steps.search_all_docs.output.values }}"
-    steps:
-      - name: log_evidence
-        type: console
-        with:
-          message: "  [{{ foreach.item[2] }}] {{ foreach.item[0] }}  emails={{ foreach.item[7] }}  fin_refs={{ foreach.item[8] }}"
-
-  - name: report_footer
-    type: console
-    with:
-      message: |
         =====================================================================
         END OF REPORT
         =====================================================================
